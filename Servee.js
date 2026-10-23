@@ -226,8 +226,9 @@ function keep(game, indices) {
         (t.counts[f] || 0) + selCounts[key] >= 3;
       if (!ok) throw new Error(`die showing ${f} is not scoring`);
     }
-    // Score = change in per-face totals.
-    for (const key of Object.keys(selCounts)) {
+    // Score = change in per-face totals
+          } else if (res.doubles) {
+        emitState(room, describeEvent('doubles', game, name, { dice: res.dice }));
       const f = Number(key);
       const before = t.counts[f] || 0;
       delta += faceTotal(f, before + selCounts[key]) - faceTotal(f, before);
