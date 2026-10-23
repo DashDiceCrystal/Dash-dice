@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crystal's Progressive 10,000 Dice Game (to 12,000)</title>
+  <style>
+    /* Felt table theme - green background, warm lighting */
+    body {
+      font-family: 'Arial Black', Arial, sans-serif;
+      background: linear-gradient(135deg, #2d5a27 0%, #1e3d14 100%);
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    }
+    h1 {
+      font-size: 2.5em;
+      margin: 0 0 20px;
+      text-align: center;
+      color: #ffd700;
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+    @keyframes glow {
+      from { text-shadow: 0 0 10px #ffd700; }
+      to { text-shadow: 0 0 20px #ffd700, 0 0 30px #ffd700; }
+    }
+    .game-board {
+      background: rgba(0, 100, 0, 0.3);
+      border: 5px solid #8b4513;
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 800px;
+      width: 95%;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .player-panel {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .player {
+      background: rgba(255,255,255,0.1);
+      border: 2px solid #ffd700;
+      border-radius: 15px;
+      padding: 15px;
+      min-width: 120px;
+      text-align: center;
+      transition: all 0.3s;
+    }
+    .player.current {
+      background: rgba(255,215,0,0.3);
+      transform: scale(1.1);
+      box-shadow: 0 0 20px #ffd700;
+    }
+    .player-score {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #ffd700;
+    }
+    .turn-total {
+      font-size: 1.2em;
+      color: #90ee90;
+    }
+    #dice-area {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin: 30px 0;
+      min-height: 120px;
+    }
+    .die {
+      width: 80px;
+      height: 80px;
+      background: #fff;
+      border: 3px solid #333;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    .die:hover {
+      transform: scale(1.05);
+    }
+    .die.selected {
+      border-color: #ffd700;
+      background: #fff8dc;
+      box-shadow: 0 0 20px #ffd700;
+      animation: pulse 1s infinite;
+    }
+    .die.rolled {
+      animation: rollShake 0.6s ease-in-out;
+    }
+    @keyframes rollShake {
+      0%, 100% { transform: translate(0); }
+      25% { transform: translate(5px, -5px) rotate(5deg); }
+      75% { transform: translate(-5px, 5px) rotate(-5deg); }
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    /* PIP DOTS - Pure CSS, no images! */
+    .pip {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #333;
+      position: absolute;
+      box-shadow: inset 0 1px 2px rgba(255,255,255,0.3);
+    }
+    .die[data-value="1"]::before { top: 32px; left: 32px; }
+    .die[data-value="2"]::before { top: 12px; left: 12px; }
+    .die[data-value="2"]::after { top: 52px; right: 12px; }
+    .die[data-value="3"]::before { top: 12px; left: 12px; }
+    .die[data-value="3"]::after { top: 32px; left: 32px; }
+    .die[data-value="3"] > .pip:nth-child(3) { top: 52px; right: 12px; }
+    .die[data-value="4"]::before { top: 12px; left: 12px; }
+    .die[data-value="4"]::after { top: 52px; right: 12px; }
+    .die[data-value="4"] > .pip:nth-child(3) { top: 12px; right: 12px; }
+    .die[data-value="4"] > .pip:nth-child(4) { top: 52px; left: 12px; }
+    .die[data-value="5"]::before { top: 12px; left: 12px; }
+    .die[data-value="5"]::after { top: 52px; right: 12px; }
+    .die[data-value="5"] > .pip:nth-child(3) { top: 32px; left: 32px; }
+    .die[data-value="5"] > .pip:nth-child(4) { top: 12px; right: 12px; }
+    .die[data-value="5"] > .pip:nth-child(5) { top: 52px; left: 12px; }
+    .die[data-value="6"]::before { top: 12px; left: 32px; }
+    .die[data-value="6"]::after { top: 32px; left: 32px; }
+    .die[data-value="6"] > .pip:nth-child(3) { top: 52px; left: 32px; }
+    .die[data-value="6"] > .pip:nth-child(4) { top: 12px; right: 12px; }
+    .die[data-value="6"] > .pip:nth-child(5) { top: 32px; right: 12px; }
+    .die[data-value="6"] > .pip:nth-child(6) { top: 52px; right: 12px; }
+    /* Hide number, show pips only */
+    .die::after, .die::before, .die > .pip { content: ''; }
+    .die > .pip:nth-child(n+1) { content: ''; }
+    button {
+      background: linear-gradient(#ffd700, #ffed4e);
+      border: none;
+      border-radius: 15px;
+      padding: 15px 30px;
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #333;
+      cursor: pointer;
+      margin: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      transition: all 0.2s;
+      min-width: 120px;
+    }
+    button:hover { transform: translateY(-2px); box-shadow: 0 7px 20px rgba(0,0,0,0.4); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    #message {
+      font-size: 1.5em;
+      text-align: center;
+      margin: 20px 0;
+      min-height: 40px;
+      padding: 15px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.1);
+    }
+    .win { color: #ff4500; font-size: 2em; animation: celebrate 1s infinite; }
+    @keyframes celebrate {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+    }
+    /* Mobile friendly */
+    @media (max-width: 600px) {
+      .die { width: 60px; height: 60px; }
+      .pip { width: 12px; height: 12px; }
+      h1 { font-size: 2em; }
+    }
+  </style>
+</head>
+<body>
+  <h1>🎲 Crystal's 12,000 Dice Dash 🎲</h1>
+  <div class="game-board">
+    <div class="player-panel" id="player-panel"></div>
+    <div id="message">Welcome! Set number of players and start.</div>
+    <div id="dice-area"></div>
+    <div style="text-align: center;">
+      <input type="number" id="num-players" min="2" max="6" value="2" style="padding:10px; font-size:1.1em; border-radius:10px; border:2px solid #ffd700; margin:10px; width:80px;">
+      <button onclick="startGame()">Start Game</button>
+      <br>
+      <button id="roll-btn" onclick="rollDice()" disabled>Roll Dice</button>
+      <button id="bank-btn" onclick="bankScore()" disabled>Bank Score</button>
+    </div>
+    <div id="debug" style="font-size:0.8em; opacity:0.7; margin-top:20px;"></div>
+  </div>
+
+  <script>
+    // Game State
+    let players = [];
+    let currentPlayer = 0;
+    let dice = [];
+    let selectedDice = [];
+    let turnTotal = 0;
+    let activatedFaces = {}; // {1: true, ...} for current turn
+    let gameState = 'setup'; // 'setup', 'playing', 'busted', 'gameover', 'finalround'
+    let finalRound = false;
+    let finalLeader = -1;
+    let finalTurnPlayer = -1;
+    let WIN_GOAL = 12000;
+
+    // Pip dice generator
+    function createDie(value = 1) {
+      const die = document.createElement('div');
+      die.className = 'die';
+      die.dataset.value = value;
+      die.onclick = () => toggleSelect(die);
+      // Pips added via CSS - no JS needed!
+      return die;
+    }
+
+    function rollVisual(diceEl) {
+      diceEl.classList.add('rolled');
+      setTimeout(() => diceEl.classList.remove('rolled'), 600);
+    }
+
+    // Count dice values
+    function countDice(diceArr) {
+      const counts = {};
+      diceArr.forEach(val => {
+        counts[val] = (counts[val] || 0) + 1;
+      });
+      return counts;
+    }
+
+    // Check straight 1-6
+    function isStraight(diceArr) {
+      const sorted = [...diceArr].sort((a,b)=>a-b);
+      return sorted.join('') === '123456';
+    }
+
+    // Check three pairs (6 dice only)
+    function isThreePairs(counts) {
+      let pairs = 0;
+      for (let face in counts) {
+        if (counts[face] === 2) pairs++;
+      }
+      return pairs === 3;
+    }
+
+    // Calculate score (your exact logic!)
+    function calculateScore(selected, activated) {
+      if (selected.length === 0) return 0;
+      let counts = countDice(selected);
+      let score = 0;
+      let numDice = selected.length;
+
+      if (numDice === 6) {
+        if (isStraight(selected)) return 1500;
+        if (isThreePairs(counts)) return 1000;
+      }
+
+      for (let faceStr in counts) {
+        let face = parseInt(faceStr);
+        let count = counts[faceStr];
+        let isActivated = !!activated[face];
+        let faceScore = 0;
+
+        if (count >= 3) {
+          if (face === 1) {
+            faceScore = count === 3 ? 1000 : count === 4 ? 4000 : count === 5 ? 5000 : 12000;
+          } else if (face === 5) {
+            faceScore = count === 3 ? 500 : count === 4 ? 2000 : count === 5 ? 2500 : 12000;
+          } else {
+            let base = face * 100;
+            faceScore = count === 3 ? base : count === 4 ? base * 4 : count === 5 ? base * 5 : 12000;
+          }
+        } else {
+          if (isActivated) {
+            faceScore = face === 1 ? count * 1000 : face === 5 ? count * 500 : count * (face * 100);
+          } else {
+            faceScore = face === 1 ? count * 100 : face === 5 ? count * 50 : 0;
+          }
+        }
+        score += faceScore;
+      }
+      return score;
+    }
+
+    // Has any scorers? (for bust / must keep)
+    function hasScorers(diceArr) {
+      if (diceArr.length === 0) return false;
+      let counts = countDice(diceArr);
+      for (let face = 1; face <= 6; face++) {
+        let cnt = counts[face] || 0;
+        if (cnt >= 3 || (face === 1 && cnt >= 1) || (face === 5 && cnt >= 1)) return true;
+      }
+      return false;
+    }
+
+    // Is bust?
+    function isBust(diceArr) {
+      return !hasScorers(diceArr);
+    }
+
+    // Toggle select die
+    function toggleSelect(dieEl) {
+      if (gameState !== 'playing') return;
+      const val = parseInt(dieEl.dataset.value);
+      const idx = dice.indexOf(val);
+      if (selectedDice.includes(val)) {
+        selectedDice.splice(selectedDice.indexOf(val), 1);
+        dieEl.classList.remove('selected');
+      } else {
+        selectedDice.push(val);
+        dieEl.classList.add('selected');
+      }
+      updateButtons();
+    }
+
+    // Roll dice
+    function rollDice() {
+      if (dice.length === 0) dice = new Array(6).fill(0);
+      else {
+        // Re-roll only non-selected
+        const remaining = dice.filter((_, i) => !selectedDice.includes(dice[i]));
+        dice = [...selectedDice, ...remaining.map(() => Math.floor(Math.random() * 6) + 1)];
+        selectedDice = []; // Clear selection for new roll
+      }
+
+      // Visual roll
+      const diceArea = document.getElementById('dice-area');
+      diceArea.innerHTML = '';
+      dice.forEach(val => {
+        const dieEl = createDie(val);
+        rollVisual(dieEl);
+        diceArea.appendChild(dieEl);
+      });
+
+      // Check bust on new roll
+      if (isBust(dice)) {
+        handleBust();
+        return;
+      }
+
+      // Activate faces if 3+ kept
+      let counts = countDice(selectedDice); // selected from prev, but new activations on current?
+      for (let face in counts) {
+        if (counts[face] >= 3) activatedFaces[parseInt(face)] = true;
+      }
+
+      // Check doubles with 2 dice -> AND ROLLING
+      if (dice.length === 2 && dice[0] === dice[1]) {
+        setMessage('🎉 DOUBLES! AND ROLLING - Roll all 6 again! 🎉');
+        dice = []; // Trigger full 6 roll next
+        activatedFaces = {}; // Reset activations?
+        return;
+      }
+
+      turnTotal += calculateScore(selectedDice, activatedFaces);
+      updateUI();
+    }
+
+    // Bank score
+    function bankScore() {
+      players[currentPlayer].score += turnTotal;
+      turnTotal = 0;
+      activatedFaces = {};
+      dice = [];
+      selectedDice = [];
+      nextPlayer();
+      checkWin();
+      updateUI();
+    }
+
+    // Handle bust
+    function handleBust() {
+      turnTotal = 0;
+      activatedFaces = {};
+      setMessage('💥 ZONK! BUST! 💥');
+      gameState = 'busted';
+      setTimeout(() => {
+        dice = [];
+        selectedDice = [];
+        nextPlayer();
+        updateUI();
+      }, 1500);
+    }
+
+    // Next player
+    function nextPlayer() {
+      currentPlayer = (currentPlayer + 1) % players.length;
+      gameState = 'playing';
+    }
+
+    // Update buttons
+    function updateButtons() {
+      const hasSelected = selectedDice.length > 0;
+      const canBank = !hasScorers(dice.filter((v,i) => !selectedDice.includes(v)));
+      document.getElementById('bank-btn').disabled = !canBank || turnTotal === 0;
+      document.getElementById('roll-btn').disabled = selectedDice.length !== 0 || gameState !== 'playing';
+    }
+
+    // Update UI
+    function updateUI() {
+      document.getElementById('player-panel').innerHTML = '';
+      players.forEach((p, i) => {
+        const panel = document.createElement('div');
+        panel.className = `player ${i === currentPlayer ? 'current' : ''}`;
+        panel.innerHTML = `
+          <div>${p.name}</div>
+          <div class="player-score">${p.score.toLocaleString()}</div>
+          <div class="turn-total">Turn: ${i === currentPlayer ? turnTotal.toLocaleString() : ''}</div>
+        `;
+        document.getElementById('player-panel').appendChild(panel);
+      });
+      document.getElementById('roll-btn').disabled = dice.length > 0;
+      updateButtons();
+      document.getElementById('debug').innerHTML = `Dice: [\( {dice.join(',')}] Selected: [ \){selectedDice.join(',')}] Activated: ${JSON.stringify(activatedFaces)}`;
+    }
+
+    // Set message
+    function setMessage(msg, isWin = false) {
+      const el = document.getElementById('message');
+      el.textContent = msg;
+      el.className = isWin ? 'win' : '';
+    }
+
+    // Check win / final round
+    function checkWin() {
+      const leaderScore = Math.max(...players.map(p => p.score));
+      if (leaderScore >= WIN_GOAL && !finalRound) {
+        finalRound = true;
+        finalLeader = players.findIndex(p => p.score === leaderScore);
+        finalTurnPlayer = (finalLeader + 1) % players.length;
+        setMessage(`Final Round! Player ${finalLeader + 1} hit ${leaderScore.toLocaleString()} - others get one last turn!`);
+        return;
+      }
+      if (finalRound && currentPlayer === finalTurnPlayer) {
+        const winner = players.reduce((win, p, i) => p.score > win.score ? {score: p.score, idx: i} : win, {score: -1, idx: -1});
+        setMessage(`🏆 PLAYER ${winner.idx + 1} WINS with ${winner.score.toLocaleString()}! 🏆`, true);
+        gameState = 'gameover';
+        document.getElementById('roll-btn').disabled = true;
+        document.getElementById('bank-btn').disabled = true;
+        return;
+      }
+    }
+
+    // Determine first player
+    function determineFirstPlayer(plrs) {
+      let rolls = plrs.map(() => Math.floor(Math.random() * 6) + 1);
+      let maxRoll = Math.max(...rolls);
+      let tied = rolls.map((r, i) => r === maxRoll ? i : -1).filter(i => i >= 0);
+      while (tied.length > 1) {
+        tied = tied.map(i => {
+          const r = Math.floor(Math.random() * 6) + 1;
+          console.log(`Player ${i+1} re-rolls: ${r}`);
+          return r;
+        }).map((r, j) => r === Math.max(...rolls.slice(tied[0], tied[0] + tied.length)) ? tied[j] : -1).filter(i => i >= 0);
+      }
+      return tied[0];
+    }
+
+    // Start game
+    function startGame() {
+      const numP = parseInt(document.getElementById('num-players').value);
+      players = [];
+      for (let i = 1; i <= numP; i++) {
+        players.push({name: `Player ${i}`, score: 0});
+      }
+      currentPlayer = determineFirstPlayer(players);
+      console.log(`Player ${currentPlayer + 1} goes first!`);
+      setMessage(`Player ${currentPlayer + 1} starts! Roll to begin.`);
+      dice = [];
+      turnTotal = 0;
+      gameState = 'playing';
+      updateUI();
+    }
+
+    // Init
+    updateUI();
+  </script>
+</body>
+</html>
