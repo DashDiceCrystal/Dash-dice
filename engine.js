@@ -171,6 +171,12 @@ function roll(game) {
     game.turn = null;
     return { dice, instantWin: true };
   }
+  // Doubles rule: a roll of exactly 2 dice showing doubles (non-scoring pair)
+  // is AND ROLLING, not a bust — fresh six, new roll set, activation resets.
+  if (n === 2 && dice[0] === dice[1] && !hasScoringDie(game, dice)) {
+    resetRollSet(t);
+    return { dice, doubles: true };
+  }
 
   if (!hasScoringDie(game, dice)) {
     const bustedPlayer = game.current;
