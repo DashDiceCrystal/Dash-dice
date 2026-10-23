@@ -16,7 +16,7 @@ const http = require('http');
 const path = require('path');
 const { Server } = require('socket.io');
 const db = require('./db');
-const engine = require('./game/engine');
+const engine = require('./engine');
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -67,7 +67,7 @@ app.get('/api/history', (req, res) => {
 });
 
 // Serve the client.
-app.use(express.static(path.join(__dirname, '..', 'frontend')));
+app.use(express.static(__dirname));
 
 // ---------------------------------------------------------------------------
 // Socket.IO rooms
