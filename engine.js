@@ -254,10 +254,10 @@ function keep(game, indices) {
   const remaining = t.rolled.filter((_, i) => !indexSet.has(i));
 
 
-  // Doubles rule: exactly 2 dice remain and they match — fresh six, new roll set.
-  if (remaining.length === 2 && remaining[0] === remaining[1]) {
+    // AND ROLLING: every die scored — fresh six, new roll set, activation resets.
+  if (remaining.length === 0) {
     resetRollSet(t);
-    return { kept: selected, delta, combo, doubles: true };
+    return { kept: selected, delta, combo, hotDice: true };
   }
 
   t.diceRemaining = remaining.length;
