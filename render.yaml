@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: farkle-server
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    disk:
+      name: farkle-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: DB_PATH
+        value: /data/farkle.db
+      - key: NODE_VERSION
+        value: 22.14.0

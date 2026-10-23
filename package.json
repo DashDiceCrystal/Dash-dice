@@ -1,0 +1,1 @@
+{"dependencies":{"bcryptjs":"^2.4.3","express":"^4.21.2","socket.io":"^4.8.1"},"description":"Progressive Farkle multiplayer server — authoritative game engine, rooms, accounts, levels.","engines":{"node":">=18"},"main":"server.js","name":"farkle-server","private":true,"scripts":{"start":"node server.js","test":"node --test game/engine.test.js"},"version":"0.1.0"}
