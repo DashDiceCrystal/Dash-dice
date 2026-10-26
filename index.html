@@ -535,7 +535,12 @@
 
       const area = $('dice-area');
       area.innerHTML = '';
-      t.rolled.forEach((v, i) => area.appendChild(createDie(v, i, mine && t.awaiting === 'keep')));
+      const bustedDice = lastEvent && lastEvent.type === 'bust' && lastEvent.detail && lastEvent.detail.dice;
+      if (bustedDice) {
+        bustedDice.forEach((v, i) => area.appendChild(createDie(v, i, false)));
+      } else {
+        t.rolled.forEach((v, i) => area.appendChild(createDie(v, i, mine && t.awaiting === 'keep')));
+      }
       if (t.rolled.length === 0 && t.awaiting === 'roll') {
         area.innerHTML = '<div style="opacity:0.7; align-self:center">Press Roll Dice 🎲</div>';
       }
